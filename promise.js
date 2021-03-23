@@ -1,4 +1,13 @@
-class promise {
+/**
+ * 符合LYH规范的Premise实例
+ * LYH规范：
+ *  1. 编译不报错
+ *  2. 基本可运行
+ *  3. .then方法符合预期，可以链式调用
+ * 你可以看到，基于LYH规范的Premise甚至没有规范的fulfilled pending rejected名字
+ * 但这并不能成为阻碍正常运行的理由！！
+ */
+class Premise {
   constructor(fn) {
     this._result = null
     this._reason = null
@@ -15,7 +24,7 @@ class promise {
       this._result = res
       this._resolveCallBack(res)
     } else {
-      console.error("immutable state in promise!");
+      console.error("immutable state in Premise!");
     }
   }
   _reject(rej) {
@@ -24,94 +33,94 @@ class promise {
       this._reason = rej
       this._rejectCallBack(rej)
     } else {
-      console.error("immutable state in promise!");
+      console.error("immutable state in Premise!");
     }
   }
   then(resolveCall, rejectCall) {
-    const prepromise = this
-    return new promise((resolve, reject) => {
+    const prePremise = this
+    return new Premise((resolve, reject) => {
       setTimeout(() => {
-        let currentpromiseResult
-        switch (prepromise._state) {
+        let currentPremiseResult
+        switch (prePremise._state) {
           case "pending":
-            prepromise._resolveCallBack = function(res) {
-              const currentpromiseResult = resolveCall(prepromise._result)
-              if(currentpromiseResult && currentpromiseResult.then) {
-                switch (currentpromiseResult._state) {
+            prePremise._resolveCallBack = function(res) {
+              const currentPremiseResult = resolveCall(prePremise._result)
+              if(currentPremiseResult && currentPremiseResult.then) {
+                switch (currentPremiseResult._state) {
                   case "pending":
-                    currentpromiseResult._resolveCallBack = function(res) {
+                    currentPremiseResult._resolveCallBack = function(res) {
                       resolve(res)
                     }
-                    currentpromiseResult._rejectCallBack = function(rej) {
+                    currentPremiseResult._rejectCallBack = function(rej) {
                       reject(rej)
                     }
                     break
                   case "resolve":
-                    resolve(currentpromiseResult._result)
+                    resolve(currentPremiseResult._result)
                     break
                   case "reject":
-                    reject(currentpromiseResult._reason)
+                    reject(currentPremiseResult._reason)
                     break
                   default:
                     break
                 }
               } else {
-                resolve(currentpromiseResult)
+                resolve(currentPremiseResult)
               }
             }
-            prepromise._rejectCallBack = function(rej) {
-              const currentpromiseResult = rejectCall(prepromise._reason)
-              if(currentpromiseResult.then) {
-                switch (currentpromiseResult._state) {
+            prePremise._rejectCallBack = function(rej) {
+              const currentPremiseResult = rejectCall(prePremise._reason)
+              if(currentPremiseResult.then) {
+                switch (currentPremiseResult._state) {
                   case "pending":
-                    currentpromiseResult._resolveCallBack = function(rej) {
+                    currentPremiseResult._resolveCallBack = function(rej) {
                       resolve(rej)
                     }
-                    currentpromiseResult._rejectCallBack = function(rej) {
+                    currentPremiseResult._rejectCallBack = function(rej) {
                       reject(rej)
                     }
                     break
                   case "resolve":
-                    resolve(currentpromiseResult._result)
+                    resolve(currentPremiseResult._result)
                     break
                   case "reject":
-                    reject(currentpromiseResult._reason)
+                    reject(currentPremiseResult._reason)
                     break
                   default:
                     break
                 }
               } else {
-                reject(currentpromiseResult)
+                reject(currentPremiseResult)
               }
             }
             break
           case "resolve":
-            currentpromiseResult = resolveCall(prepromise._result)
-            if(currentpromiseResult.then) {
-              switch (currentpromiseResult._state) {
+            currentPremiseResult = resolveCall(prePremise._result)
+            if(currentPremiseResult.then) {
+              switch (currentPremiseResult._state) {
                 case "pending":
-                  currentpromiseResult._resolveCallBack = function(res) {
+                  currentPremiseResult._resolveCallBack = function(res) {
                     resolve(res)
                   }
-                  currentpromiseResult._rejectCallBack = function(rej) {
+                  currentPremiseResult._rejectCallBack = function(rej) {
                     reject(rej)
                   }
                   break
                 case "resolve":
-                  resolve(currentpromiseResult._result)
+                  resolve(currentPremiseResult._result)
                   break
                 case "reject":
-                  reject(currentpromiseResult._reason)
+                  reject(currentPremiseResult._reason)
                   break
               }
             } else {
-              resolve(prepromise._result)
+              resolve(prePremise._result)
             }
             break
           case "reject":
-            currentpromiseResult = rejectCall(prepromise._reason)
-            if(currentpromiseResult._state) {
-              switch (currentpromiseResult._state) {
+            currentPremiseResult = rejectCall(prePremise._reason)
+            if(currentPremiseResult._state) {
+              switch (currentPremiseResult._state) {
                 case "pending":
                   break
                 case "resolve":
@@ -120,7 +129,7 @@ class promise {
                   break
               }
             } else {
-              reject(prepromise._reason)
+              reject(prePremise._reason)
             }
             break
         }
@@ -128,10 +137,10 @@ class promise {
     })
   }
 }
-const p = new promise((resolve, reject) => {
+const p = new Premise((resolve, reject) => {
   console.log("1")
   resolve("1 finished")
-}).then(res => new promise((resolve, reject) => {
+}).then(res => new Premise((resolve, reject) => {
   console.log(res)
   setTimeout(() => {
     console.log("2")
